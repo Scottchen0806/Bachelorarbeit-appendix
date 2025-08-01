@@ -20,4 +20,5 @@ Python 3.8+ with the following packages:
 - numpy  
 - pandas  
 - matplotlib  
-- scipy  
+- scipy
+- sklearn
