@@ -9,7 +9,7 @@ np.random.seed(42)
 participants = range(1, 5)
 
 # ===============================
-# 数据定义：Indifference / Experimentation
+# Indifference / Experimentation
 # ===============================
 indifference_qs = [
     [[50, 2.00], [51, 2.01], [49, 1.99]],
@@ -24,7 +24,7 @@ indifference_qs = [
     [[300, 15.00], [305, 15.25], [295, 14.75]],
 ]
 
-# 每题的3个选项，每个包含 Quantity & Price（实验条件）
+# Each question has 3 options, and each option includes a quantity and a price (experimental condition).
 experimenting_qs = [
     [[100, 30], [100, 35], [100, 32]],
     [[145, 6], [300, 12], [300, 13]],
@@ -52,7 +52,7 @@ experimenting_innovation_flags = [
 ]
 
 # ===============================
-# 数据定义：Indecisiveness
+# Indecisiveness
 # ===============================
 attribute_pool = [
     "brand_known", "brand_average", "brand_unknown",
@@ -164,7 +164,7 @@ def build_choice_sets(scenario_name, questions, participant_id):
         return [g for _, g in df.groupby('question')], ['feature1_scaled', 'feature2_scaled']
 
 # ===============================
-# 模型定义
+# Model definition
 # ===============================
 def get_model_funcs(scaled_features):
     def luce_ll(beta, sets):
@@ -250,7 +250,7 @@ def fit_models(scenario_name, sets, scaled_features, participant_id):
     return results
 
 # ===============================
-# 主执行流程：每个参与者都跑3种情境×4种模型
+# Main execution process: Each participant goes through 3 scenarios × 4 models.
 # ===============================
 scenarios = {
     "indifference": indifference_qs,
