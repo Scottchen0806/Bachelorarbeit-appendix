@@ -4,7 +4,7 @@ This repository contains all supplementary materials for the thesis on stochasti
 
 ## Contents
 
-- `Decision-Making Behavior Research Questionnaire*.csv`: Raw survey responses exported from Google Forms.  
+- `DecisionMakingData*.csv`: Raw survey responses exported from Google Forms.  
 - `clean_beta_output.csv`: Cleaned behavioral data used for model estimation.  
 - `Simulation_Results.csv`: Output of model simulations.  
 - `all_model_results.csv`: Summary of model fit results across conditions.
