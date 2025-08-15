@@ -1,6 +1,6 @@
 # Bachelor Thesis Appendix
 
-This repository contains all supplementary materials for the thesis on stochastic choice behavior.
+This repository accompanies the Bachelor thesis submitted to LMU Munich, August 2025
 
 ## Contents
 
