@@ -245,7 +245,4 @@ for idx, row in final_df.iterrows():
 
 # Convert to DataFrame
 tidy_df = pd.DataFrame(beta_records)
-
 print(tidy_df.to_string(index=False))
-tidy_df.to_csv("clean_beta_output.csv", index=False)
-final_df.to_csv("all_model_results.csv", index=False)
