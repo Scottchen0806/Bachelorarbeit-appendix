@@ -6,13 +6,9 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-# ======== Load Data =========
-# Read CSV file
 df = pd.read_csv("/Users/chenxinyang/Desktop/Decision-Making Behavior Research Questionnaire ohne 3,28.csv")
 
-
-
-# ======== Define Utility Functions =========
+# Define Utility Functions
 def choice_to_index(choice_str):
     if isinstance(choice_str, str):
         choice_str = choice_str.strip().upper()
@@ -26,7 +22,7 @@ def choice_to_index(choice_str):
 
 scaler = StandardScaler()
 
-# ======== Indifference =========
+# Indifference
 indifference_qs = [
     [[50, 2.00], [51, 2.01], [49, 1.99]],
     [[500, 1.00], [505, 1.01], [495, 0.99]],
@@ -57,7 +53,7 @@ def build_indifference_sets(df, participant_id):
     data[["quantity_scaled", "price_scaled"]] = scaler.fit_transform(data[["quantity", "price"]])
     return [g for _, g in data.groupby("question")], ["quantity_scaled", "price_scaled"]
 
-# ======== Experimentation =========
+# Experimentation
 experimenting_qs = [
     [[0, 30], [1, 35], [0, 32]],
     [[0, 6], [1, 12], [0, 13]],
@@ -88,7 +84,7 @@ def build_experimentation_sets(df, participant_id):
     data[["feature1_scaled", "feature2_scaled"]] = scaler.fit_transform(data[["feature1", "feature2"]])
     return [g for _, g in data.groupby("question")], ["feature1_scaled", "feature2_scaled"]
 
-# ======== Indecisiveness =========
+# Indecisiveness
 attribute_pool = [
     "brand_known", "brand_average", "brand_unknown",
     "battery_known", "battery_unknown",
@@ -160,7 +156,7 @@ def build_indecisiveness_sets(df, participant_id):
     data[[f + "_scaled" for f in attribute_pool + ["price"]]] = scaler.fit_transform(data[attribute_pool + ["price"]])
     return [g for _, g in data.groupby("question")], [f + "_scaled" for f in attribute_pool + ["price"]]
 
-# ======== Model Definition & Fitting =========
+# Model Definition & Fitting
 def get_model_funcs(scaled_features):
     def luce_ll(beta, sets):
         ll = 0
@@ -216,7 +212,7 @@ def fit_models(choice_sets, features, participant_id, scenario_name):
         })
     return results
 
-# ======== Main Program Execution =========
+# Main Program Execution
 all_results = []
 
 for pid in range(df.shape[0]):
