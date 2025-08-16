@@ -233,7 +233,7 @@ for idx, row in final_df.iterrows():
         for i, val in enumerate(beta_list):
             beta_records.append({
                 "Participant": row["Participant"],
-                "Scenario": row.get("Scenario", ""),  # 如果没有这列也不报错
+                "Scenario": row.get("Scenario", ""),
                 "Model": row["Model"],
                 "Log-Likelihood": row["Log-Likelihood"],
                 "AIC": row["AIC"],
