@@ -1,14 +1,31 @@
-import numpy as np
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import StandardScaler
 from scipy.optimize import minimize
 import warnings
+
 warnings.filterwarnings("ignore")
 
 np.random.seed(42)
-participants = range(1, 5)
+participants = range(0, 30)
+choices = np.random.choice(['A', 'B', 'C'], size=(len(participants), 30))
+df = pd.DataFrame(choices, columns=[f"Q{i}" for i in range(1, 31)])
+df.insert(0, "ID", list(participants))  
 
-# Indifference / Experimentation
+
+def choice_to_index(choice_str):
+    if isinstance(choice_str, str):
+        choice_str = choice_str.strip().upper()
+        if choice_str.startswith("A"):
+            return 0
+        elif choice_str.startswith("B"):
+            return 1
+        elif choice_str.startswith("C"):
+            return 2
+    return np.nan
+
+scaler = StandardScaler()
+
 indifference_qs = [
     [[50, 2.00], [51, 2.01], [49, 1.99]],
     [[500, 1.00], [505, 1.01], [495, 0.99]],
@@ -22,34 +39,53 @@ indifference_qs = [
     [[300, 15.00], [305, 15.25], [295, 14.75]],
 ]
 
-# Each question has 3 options, and each option includes a quantity and a price (experimental condition).
+def build_indifference_sets(df, participant_id):
+    rows = []
+    answers = df.iloc[participant_id, 1:11]  # Q1–Q10
+    for i, answer in enumerate(answers):
+        choice_idx = choice_to_index(answer)
+        for j, (qty, price) in enumerate(indifference_qs[i]):
+            rows.append({
+                "quantity": qty,
+                "price": price,
+                "choice": 1 if j == choice_idx else 0,
+                "question": i + 1,
+                "participant": participant_id + 1
+            })
+    data = pd.DataFrame(rows)
+    data[["quantity_scaled", "price_scaled"]] = scaler.fit_transform(data[["quantity", "price"]])
+    return [g for _, g in data.groupby("question")], ["quantity_scaled", "price_scaled"]
+
 experimenting_qs = [
-    [[100, 30], [100, 35], [100, 32]],
-    [[145, 6], [300, 12], [300, 13]],
-    [[100, 9], [105, 10.5], [95, 8.5]],
-    [[100, 5], [100, 6], [100, 5]],
-    [[100, 50], [100, 55], [100, 48]],
-    [[100, 5], [100, 4], [100, 3]],
-    [[100, 40], [100, 45], [100, 38]],
-    [[5, 1500], [6, 1400], [4, 1200]],
-    [[60, 60], [20, 20], [30, 40]],
-    [[100, 300], [100, 320], [100, 280]],
+    [[0, 30], [1, 35], [0, 32]],
+    [[0, 6], [1, 12], [0, 13]],
+    [[0, 9], [1, 10.5], [0, 8.5]],
+    [[0, 5], [1, 6], [0, 5]],
+    [[0, 50], [1, 55], [0, 48]],
+    [[0, 5], [1, 4], [0, 3]],
+    [[0, 40], [1, 45], [0, 38]],
+    [[0, 1500], [1, 1400], [0, 1200]],
+    [[0, 60], [1, 20], [0, 40]],
+    [[0, 300], [1, 320], [0, 280]],
 ]
 
-experimenting_innovation_flags = [
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-    [0, 1, 0],
-]
+def build_experimentation_sets(df, participant_id):
+    rows = []
+    answers = df.iloc[participant_id, 21:31]  # Q21–Q30
+    for i, answer in enumerate(answers):
+        choice_idx = choice_to_index(answer)
+        for j, (feat1, feat2) in enumerate(experimenting_qs[i]):
+            rows.append({
+                "feature1": feat1,
+                "feature2": feat2,
+                "choice": 1 if j == choice_idx else 0,
+                "question": i + 1,
+                "participant": participant_id + 1
+            })
+    data = pd.DataFrame(rows)
+    data[["feature1_scaled", "feature2_scaled"]] = scaler.fit_transform(data[["feature1", "feature2"]])
+    return [g for _, g in data.groupby("question")], ["feature1_scaled", "feature2_scaled"]
 
-# Indecisiveness
 attribute_pool = [
     "brand_known", "brand_average", "brand_unknown",
     "battery_known", "battery_unknown",
@@ -75,9 +111,9 @@ question_data = {
     11: [{"brand_known": 1, "battery_unknown": 1, "price": 1000},
          {"brand_average": 1, "battery_known": 1, "price": 1200},
          {"brand_unknown": 1, "battery_known": 1, "service_unknown": 1, "price": 800}],
-    12: [{"brand_known": 1, "camera_strong": 1, "price": 5000},
-         {"brand_average": 1, "camera_weak": 1, "price": 4500},
-         {"brand_unknown": 1, "camera_strong": 1, "price": 4800}],
+    12: [{"brand_known": 1, "camera_strong": 1, "price": 500},
+         {"brand_average": 1, "camera_weak": 1, "price": 450},
+         {"brand_unknown": 1, "camera_strong": 1, "price": 480}],
     13: [{"flight_included": 1, "hotel_high_quality": 1, "price": 3000},
          {"flight_not_included": 1, "hotel_unknown": 1, "price": 3500},
          {"flight_included": 1, "hotel_unknown": 1, "price": 2800}],
@@ -105,157 +141,107 @@ question_data = {
 }
 
 
-scaler = StandardScaler()
+def build_indecisiveness_sets(df, participant_id):
+    rows = []
+    answers = df.iloc[participant_id, 11:21]  # Q11–Q20
+    for i, qid in enumerate(range(11, 21)):
+        choice_idx = choice_to_index(answers.iloc[i])
+        for j, opt in enumerate(question_data[qid]):
+            row = {attr: opt.get(attr, 0) for attr in attribute_pool}
+            row["price"] = opt["price"]
+            row["question"] = qid
+            row["choice"] = 1 if j == choice_idx else 0
+            row["participant"] = participant_id + 1
+            rows.append(row)
+    data = pd.DataFrame(rows)
+    data[[f + "_scaled" for f in attribute_pool + ["price"]]] = scaler.fit_transform(data[attribute_pool + ["price"]])
+    return [g for _, g in data.groupby("question")], [f + "_scaled" for f in attribute_pool + ["price"]]
 
-def simulate_choices(df, beta=None):
-    if beta is None:
-        beta = [0.2] * len(attribute_pool) + [-1.0]
-    data = []
-    for qid in df['question'].unique():
-        df_q = df[df['question'] == qid].copy()
-        X = df_q[attribute_pool + ['price']].values
-        utilities = X @ beta + np.random.normal(0, 0.05, 3)
-        probs = np.exp(utilities - np.max(utilities))
-        probs /= np.sum(probs)
-        choice = np.random.choice([0, 1, 2], p=probs)
-        df_q['choice'] = 0
-        df_q.iloc[choice, df_q.columns.get_loc('choice')] = 1
-        data.append(df_q)
-    return pd.concat(data, ignore_index=True)
-
-def build_choice_sets(scenario_name, questions, participant_id):
-    if scenario_name == "indecisiveness":
-        rows = []
-        for qid, options in question_data.items():
-            for i, opt in enumerate(options):
-                row = {attr: opt.get(attr, 0) for attr in attribute_pool}
-                row['price'] = opt['price']
-                row['question'] = qid
-                row['option'] = ['A', 'B', 'C'][i]
-                row['participant'] = participant_id
-                rows.append(row)
-        df = pd.DataFrame(rows)
-        df = simulate_choices(df)
-        df[[f + '_scaled' for f in attribute_pool + ['price']]] = scaler.fit_transform(df[attribute_pool + ['price']])
-        return [g for _, g in df.groupby('question')], [f + '_scaled' for f in attribute_pool + ['price']]
-    else:
-        rows = []
-        for qid, q in enumerate(questions, start=1):
-            X = np.array(q)
-            utilities = X @ np.array([0.5, -0.5]) + np.random.normal(0, 0.05, 3)
-            probs = np.exp(utilities - np.max(utilities))
-            probs /= np.sum(probs)
-            choice = np.random.choice([0, 1, 2], p=probs)
-            for i in range(3):
-                rows.append({
-                    'feature1': X[i, 0],
-                    'feature2': X[i, 1],
-                    'choice': 1 if i == choice else 0,
-                    'question': qid,
-                    'participant': participant_id
-                })
-        df = pd.DataFrame(rows)
-        df[['feature1_scaled', 'feature2_scaled']] = scaler.fit_transform(df[['feature1', 'feature2']])
-        return [g for _, g in df.groupby('question')], ['feature1_scaled', 'feature2_scaled']
-
-# Model definition
 def get_model_funcs(scaled_features):
     def luce_ll(beta, sets):
         ll = 0
         for g in sets:
             X = g[scaled_features].values
             u = X @ beta
-            u = u - np.max(u)
+            u -= np.max(u)
             try:
                 ll += u[g['choice'] == 1][0] - np.log(np.sum(np.exp(u)))
             except:
                 return np.inf
         return -ll
-
     def rum_ll(beta, sets):
-        ll = 0
-        for g in sets:
-            X = g[scaled_features].values
-            u = X @ beta / 0.01
-            probs = np.exp(u - np.max(u))
-            probs /= np.sum(probs)
-            chosen = g['choice'].values.argmax()
-            ll += np.log(probs[chosen] + 1e-8)
-        return -ll
-
+        return -sum(np.log((np.exp((X := g[scaled_features].values @ beta / 0.01) - np.max(X)) / np.sum(np.exp(X - np.max(X))))[g['choice'].values.argmax()] + 1e-8) for g in sets)
     def arum_ll(beta, sets):
-        ll = 0
-        for g in sets:
-            X = g[scaled_features].values
-            u = X @ beta
-            probs = np.exp(u - np.max(u))
-            probs /= np.sum(probs)
-            chosen = g['choice'].values.argmax()
-            ll += np.log(probs[chosen])
-        return -ll
-
+        return -sum(np.log((np.exp((X := g[scaled_features].values @ beta) - np.max(X)) / np.sum(np.exp(X - np.max(X))))[g['choice'].values.argmax()]) for g in sets)
     def apum_ll(beta, sets, lam=0.1):
-        ll = 0
-        for g in sets:
-            X = g[scaled_features].values
-            u = X @ beta
-            probs = np.exp(u - np.max(u))
-            probs /= np.sum(probs)
-            chosen = g['choice'].values.argmax()
-            entropy = -np.sum(probs * np.log(probs + 1e-8))
-            ll += np.log(probs[chosen]) + lam * entropy
-        return -ll
-
+        return -sum((np.log((p := np.exp((X := g[scaled_features].values @ beta) - np.max(X)) / np.sum(np.exp(X - np.max(X))))[g['choice'].values.argmax()]) + lam * -np.sum(p * np.log(p + 1e-8))) for g in sets)
     return luce_ll, rum_ll, arum_ll, apum_ll
 
-
-def fit_models(scenario_name, sets, scaled_features, participant_id):
+def fit_models(choice_sets, features, participant_id, scenario_name):
     results = []
-    luce_ll, rum_ll, arum_ll, apum_ll = get_model_funcs(scaled_features)
-    funcs = {
-        'Luce': (luce_ll, (sets,)),
-        'RUM': (rum_ll, (sets,)),
-        'ARUM': (arum_ll, (sets,)),
-        'APUM': (apum_ll, (sets, 0.1))
+    luce_ll, rum_ll, arum_ll, apum_ll = get_model_funcs(features)
+    models = {
+        "Luce": (luce_ll, (choice_sets,)),
+        "RUM": (rum_ll, (choice_sets,)),
+        "ARUM": (arum_ll, (choice_sets,)),
+        "APUM": (apum_ll, (choice_sets, 0.1)),
     }
-    for name, (func, args) in funcs.items():
+    for name, (func, args) in models.items():
         try:
-            res = minimize(func, x0=np.random.randn(len(scaled_features)), args=args, method='BFGS')
+            res = minimize(func, np.random.randn(len(features)), args=args, method='BFGS')
             if not res.success or np.isnan(res.fun):
-                raise ValueError("Optimization failed")
+                raise ValueError("fail")
             ll = -res.fun
             k = len(res.x)
-            n = len(sets)
+            n = len(choice_sets)
             aic = 2 * k - 2 * ll
             bic = k * np.log(n) - 2 * ll
-            beta = res.x[:5].round(4).tolist()
-        except Exception as e:
-            ll, aic, bic, beta = np.nan, np.nan, np.nan, np.nan
+            beta = res.x.round(4).tolist()
+        except:
+            ll, aic, bic = np.nan, np.nan, np.nan
+            beta = [np.nan] * len(features)
+
         results.append({
-            'Participant': participant_id,
-            'Scenario': scenario_name,
-            'Model': name,
-            'Log-Likelihood': ll,
-            'AIC': aic,
-            'BIC': bic,
-            'Beta': beta
+            "Participant": participant_id + 1,
+            "Scenario": scenario_name,
+            "Model": name,
+            "Log-Likelihood": ll,
+            "AIC": aic,
+            "BIC": bic,
+            "Beta": beta
         })
     return results
-
-# Main execution process
-scenarios = {
-    "indifference": indifference_qs,
-    "experimentation": experimenting_qs,
-    "indecisiveness": question_data
-}
-
+    
 all_results = []
 
-for pid in participants:
-    for scenario_name, questions in scenarios.items():
-        choice_sets, features = build_choice_sets(scenario_name, questions, participant_id=pid)
-        results = fit_models(scenario_name, choice_sets, features, participant_id=pid)
-        all_results.extend(results)
+for pid in range(df.shape[0]):
+    for scenario, builder in {
+        "indifference": build_indifference_sets,
+        "indecisiveness": build_indecisiveness_sets,
+        "experimentation": build_experimentation_sets
+    }.items():
+        sets, feats = builder(df, pid)
+        all_results.extend(fit_models(sets, feats, pid, scenario))
 
 final_df = pd.DataFrame(all_results)
-print(final_df.to_string(index=False))
+
+beta_records = []
+
+for idx, row in final_df.iterrows():
+    beta_list = row["Beta"]
+    if isinstance(beta_list, list):
+        for i, val in enumerate(beta_list):
+            beta_records.append({
+                "Participant": row["Participant"],
+                "Scenario": row.get("Scenario", ""),  # 如果没有这列也不报错
+                "Model": row["Model"],
+                "Log-Likelihood": row["Log-Likelihood"],
+                "AIC": row["AIC"],
+                "BIC": row["BIC"],
+                "Beta_Index": f"Beta_{i+1}",
+                "Beta_Value": val
+            })
+
+tidy_df = pd.DataFrame(beta_records)
+
+print(tidy_df.to_string(index=False))
