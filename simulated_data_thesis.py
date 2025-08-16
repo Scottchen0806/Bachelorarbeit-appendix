@@ -8,9 +8,7 @@ warnings.filterwarnings("ignore")
 np.random.seed(42)
 participants = range(1, 5)
 
-# ===============================
 # Indifference / Experimentation
-# ===============================
 indifference_qs = [
     [[50, 2.00], [51, 2.01], [49, 1.99]],
     [[500, 1.00], [505, 1.01], [495, 0.99]],
@@ -51,9 +49,7 @@ experimenting_innovation_flags = [
     [0, 1, 0],
 ]
 
-# ===============================
 # Indecisiveness
-# ===============================
 attribute_pool = [
     "brand_known", "brand_average", "brand_unknown",
     "battery_known", "battery_unknown",
@@ -109,7 +105,6 @@ question_data = {
 }
 
 
-# ===============================
 scaler = StandardScaler()
 
 def simulate_choices(df, beta=None):
@@ -163,9 +158,7 @@ def build_choice_sets(scenario_name, questions, participant_id):
         df[['feature1_scaled', 'feature2_scaled']] = scaler.fit_transform(df[['feature1', 'feature2']])
         return [g for _, g in df.groupby('question')], ['feature1_scaled', 'feature2_scaled']
 
-# ===============================
 # Model definition
-# ===============================
 def get_model_funcs(scaled_features):
     def luce_ll(beta, sets):
         ll = 0
@@ -249,9 +242,7 @@ def fit_models(scenario_name, sets, scaled_features, participant_id):
         })
     return results
 
-# ===============================
-# Main execution process: Each participant goes through 3 scenarios × 4 models.
-# ===============================
+# Main execution process
 scenarios = {
     "indifference": indifference_qs,
     "experimentation": experimenting_qs,
