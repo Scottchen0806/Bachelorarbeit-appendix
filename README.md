@@ -7,7 +7,8 @@ This repository accompanies the Bachelor thesis submitted to LMU Munich, August 
 - `DecisionMakingData32.csv`: Full dataset comprising raw responses from all 32 participants as exported from Google Forms, prior to any data cleaning or exclusion.  
 - `DecisionMakingDataOhne3_28.csv`: Refined dataset after applying exclusion criteria, where responses from Participant 3 and Participant 28 were removed due to concerns such as incomplete data, irregular response patterns, or violation of experimental requirements.  
 - `clean_beta_output.csv`: Cleaned behavioral data used for model estimation.  
-- `Simulation_Results.csv`: Output of model simulations.  
+- `simulated_all_model_results.csv`: Summary of simulation model-fit results across the three behavioral conditions.
+- `simulated_clean_beta_output.csv`: Cleaned simulation data used for model estimation.  
 - `all_model_results.csv`: Summary of model fit results across conditions.
 
 ## Code Scripts
