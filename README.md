@@ -15,7 +15,8 @@ This repository accompanies the Bachelor thesis submitted to LMU Munich, August 
 
 - `simulated_data_thesis.py`: Main analysis script using simulated data to fit models, evaluate empirical performance, and generate figures.
 - `bachelor_thesis_analysis_code.py`: Main analysis script using real experimental data to fit models, evaluate empirical performance, and generate figures.
-
+- `plot_model_fit.py`: Script to load model fit results from CSV (simulated or empirical), aggregate fit statistics, and generate bar plots comparing performance across behavioral scenarios.
+  
 ## Requirements
 
 Python 3.8+ with the following packages:
@@ -24,6 +25,7 @@ Python 3.8+ with the following packages:
 - matplotlib  
 - scipy
 - sklearn
+  
 ## Notes
 
 The original questionnaire was implemented using Google Forms and contained randomized binary choice tasks across three behavioral conditions (indifference, indecisiveness, and experimentation). The raw responses were exported in CSV format and anonymized prior to analysis.
